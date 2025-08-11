@@ -38,10 +38,6 @@ cd nox
 sudo bash export_model_to_ecr.sh <PLANT_CODE> <MLFLOW_RUN_ID> <GIT_TAG> <MINIO_ID> <MINIO_PW> <GIT_USER> <GIT_TOKEN>
 ```
 
-예시:
-```bash
-sudo bash export_model_to_ecr.sh srs1 abc123def456 v1.0.0 admin admin1234 root glpat-ZZmrz1nY4qPzUag2Pr3A
-```
 
 ## 테스트 방법
 

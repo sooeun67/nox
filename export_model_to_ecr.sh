@@ -3,8 +3,7 @@
 # 사용법:
 # sudo bash export_model_to_ecr.sh <PLANT_CODE> <MLFLOW_RUN_ID> <GIT_TAG> <MINIO_ID> <MINIO_PW> <GIT_USER> <GIT_TOKEN>
 
-# 예시:
-# sudo bash export_model_to_ecr.sh srs1 <RUN_ID> v1.0.0 admin admin1234 root glpat-ZZmrz1nY4qPzUag2Pr3A
+
 
 # ------------------------ 설정 영역 ------------------------
 MLFLOW_TRACKING_URI=http://10.250.109.206:5000
