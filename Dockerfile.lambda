@@ -1,0 +1,55 @@
+# NOx LGBM 모델용 Dockerfile.lambda
+# AWS Lambda용 베이스 이미지
+FROM mrx-base:v2
+
+# ARG 선언
+ARG GIT_USER
+ARG GIT_TOKEN
+ARG GIT_TAG
+ARG MLFLOW_RUN_ID
+
+# 기본값 설정
+ARG MLFLOW_TRACKING_URI=http://10.250.109.206:5000
+ARG MINIO_URI=http://10.250.109.206:9000
+ARG MINIO_ID=admin
+ARG MINIO_PW=admin1234
+
+# ENV로 승격
+ENV GIT_USER=${GIT_USER}
+ENV GIT_TOKEN=${GIT_TOKEN}
+
+# Git 인증 URL 설정
+RUN git config --global url."http://${GIT_USER}:${GIT_TOKEN}@10.250.109.206:8080/".insteadOf "http://10.250.109.206:8080/"
+
+# GitLab 프로젝트 클론 (NOx 모델용 repo)
+RUN git clone http://${GIT_USER}:${GIT_TOKEN}@10.250.109.206:8080/skep/srs1-urea-model.git /srs1-urea-model \
+    && cd /srs1-urea-model \
+    && git fetch --tags --force \
+    && git checkout $GIT_TAG \
+    && rm -rf .git \
+    && rm -rf ${HOME}/.ssh
+
+# 디버깅: 클론된 디렉토리 구조 확인
+RUN echo "=== 전체 디렉토리 구조 ===" && ls -la /srs1-urea-model/
+
+WORKDIR /srs1-urea-model
+
+# MinIO S3 설정
+ENV MLFLOW_S3_ENDPOINT_URL=$MINIO_URI
+ENV AWS_ACCESS_KEY_ID=$MINIO_ID
+ENV AWS_SECRET_ACCESS_KEY=$MINIO_PW
+ENV MLFLOW_S3_BUCKET=mlflow
+ENV MLFLOW_S3_IGNORE_TLS=true
+
+# 필요한 패키지 설치
+RUN apt-get update && apt-get install -y libgomp1
+RUN pip install lightgbm scikit-learn awslambdaric
+
+# 모델 다운로드
+RUN python setup_model_from_mlflow.py \
+    --run_id $MLFLOW_RUN_ID \
+    --mlflow_tracking_uri $MLFLOW_TRACKING_URI
+
+# Lambda Entrypoint
+ENTRYPOINT ["python", "-m", "awslambdaric"]
+CMD ["lambda_func.nox_pred"] 
