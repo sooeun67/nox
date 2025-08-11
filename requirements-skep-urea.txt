@@ -65,7 +65,6 @@ gunicorn==23.0.0
 gym==0.22.0
 gym-notices==0.0.8
 # Editable install with no version control (gymrx==0.6.1)
--e /home/insight-ai-02/skep-acc-13.1.0/gymrx-0.6.1
 h11 @ file:///croot/h11_1748442006460/work
 httpcore @ file:///croot/httpcore_1748526048470/work
 httpx @ file:///croot/httpx_1746747840559/work

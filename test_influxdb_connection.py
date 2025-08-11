@@ -13,8 +13,9 @@ INFLUXDB_HOST = "10.238.27.132"
 INFLUXDB_PORT = "8086"
 INFLUXDB_USERNAME = "read_user"
 INFLUXDB_PASSWORD = "!Skepinfluxuser25"
-INFLUXDB_DATABASE = "srs1"  # 데이터베이스명
+INFLUXDB_DATABASE = "SRS1"  # 데이터베이스명
 INFLUXDB_TIMEOUT = 30
+INFLUXDB_BUCKET = "SRS1"
 
 
 def test_influxdb_connection():
@@ -26,7 +27,7 @@ def test_influxdb_connection():
     try:
         # InfluxDB 클라이언트 생성 (기존 aws 코드 방식)
         from influxdb import InfluxDBClient as LegacyInfluxDBClient
-        
+
         client = LegacyInfluxDBClient(
             host=INFLUXDB_HOST,
             port=INFLUXDB_PORT,
@@ -36,13 +37,13 @@ def test_influxdb_connection():
             timeout=INFLUXDB_TIMEOUT,
         )
 
-                # 연결 테스트
+        # 연결 테스트
         print("InfluxDB 연결 테스트...")
-        
+
         # 데이터베이스 목록 조회
         databases = client.get_list_database()
         print(f"사용 가능한 데이터베이스: {[db['name'] for db in databases]}")
-        
+
         # 현재 데이터베이스의 측정값 목록 조회
         measurements = client.get_list_measurements()
         print(f"현재 데이터베이스의 측정값: {[m['name'] for m in measurements]}")
@@ -61,7 +62,7 @@ def query_recent_data(client, measurement_name="nox", limit=10):
 
     try:
         # 쿼리 작성
-                # 기존 aws 코드 방식의 쿼리
+        # 기존 aws 코드 방식의 쿼리
         query = f"""
         SELECT *
         FROM "{measurement_name}"
@@ -69,7 +70,7 @@ def query_recent_data(client, measurement_name="nox", limit=10):
         ORDER BY time DESC
         LIMIT {limit}
         """
-        
+
         # 쿼리 실행
         result = client.query(query)
 
