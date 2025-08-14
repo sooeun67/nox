@@ -203,7 +203,7 @@ def test_full_pipeline(client: SRS1InfluxDBClient):
         print(f"✅ 전처리 완료: {processed_data.shape}")
         print(f"   생성된 피처 수: {len(feature_cols)}")
 
-        # 전처리 후 컬럼 확인
+        # 전처리 후 컬럼 확인 - 더 자세한 정보 출력
         print(f"\n🔍 전처리 후 컬럼 확인:")
         print(f"   전체 컬럼 수: {len(processed_data.columns)}")
         print(
@@ -211,6 +211,38 @@ def test_full_pipeline(client: SRS1InfluxDBClient):
         )
         print(
             f"   시간 관련 컬럼: {[col for col in processed_data.columns if 'time' in col.lower()]}"
+        )
+
+        # 원본 NOx 컬럼 확인
+        print(
+            f"   원본 NOx 컬럼 (nox_value): {[col for col in processed_data.columns if col == 'nox_value']}"
+        )
+        print(
+            f"   icf_tms_nox_a 관련 컬럼: {[col for col in processed_data.columns if 'icf_tms_nox_a' in col][:5]}"
+        )
+
+        # 전체 컬럼에서 'nox'가 포함된 컬럼 상세 확인
+        nox_columns = [col for col in processed_data.columns if "nox" in col.lower()]
+        print(f"   NOx 관련 컬럼 상세:")
+        for i, col in enumerate(nox_columns[:10]):  # 처음 10개만 출력
+            print(f"     {i+1:2d}. {col}")
+        if len(nox_columns) > 10:
+            print(f"     ... 외 {len(nox_columns) - 10}개")
+
+        # 원본 데이터에서 NOx 관련 컬럼 확인
+        print(f"\n🔍 원본 데이터 NOx 컬럼 확인:")
+        print(f"   원본 컬럼: {list(raw_data.columns)}")
+        print(
+            f"   NOx 관련 원본 컬럼: {[col for col in raw_data.columns if 'nox' in col.lower()]}"
+        )
+
+        # 전처리 전후 컬럼 비교
+        print(f"\n🔍 전처리 전후 컬럼 비교:")
+        print(
+            f"   전처리 전 NOx 컬럼: {[col for col in raw_data.columns if 'nox' in col.lower()]}"
+        )
+        print(
+            f"   전처리 후 NOx 컬럼: {[col for col in processed_data.columns if 'nox' in col.lower()]}"
         )
 
         # 3. 모델 예측 실행
