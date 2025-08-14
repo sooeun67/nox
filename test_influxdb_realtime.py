@@ -286,6 +286,11 @@ def test_full_pipeline(client: SRS1InfluxDBClient):
                 result_df = result_df.reset_index()
                 print("✅ _time_gateway 인덱스를 컬럼으로 복원")
 
+            # NOX_Value를 별도로 추가 (Y값으로 사용)
+            if "nox_value" in raw_data.columns:
+                result_df["nox_value"] = raw_data["nox_value"]
+                print("✅ nox_value (Y값) 추가")
+
             # 5. 필수 컬럼 확인 및 출력
             print(f"\n📊 최종 결과 데이터:")
             print(f"   데이터 형태: {result_df.shape}")
