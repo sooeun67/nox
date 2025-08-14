@@ -23,13 +23,13 @@ INFLUXDB_BUCKET = "SRS1"
 
 # NOx 예측에 필요한 측정값들 (실제 데이터에 맞게 수정 필요)
 REQUIRED_MEASUREMENTS = [
-    "_time_gateway",
-    "icf_ccs_fg_t_1",  # 내부온도
-    "icf_scs_fg_t_1",  # 출구온도
-    "br1_eo_o2_a",  # 보일러 출구 O2 농도
-    "snr_pmp_uw_s_1",  # 요소수 주입 Hz
-    "acc_snr_ai_1a",  # 요소수 AI Mode
-    "nox_value",  # 현재 NOx 값 (이전 값)
+    "time",
+    "ICF_CCS_FG_T_1",  # 내부온도
+    "ICF_SCS_FG_T_1",  # 출구온도
+    "BR1_EO_O2_A",  # 보일러 출구 O2 농도
+    "SNR_PMP_UW_S_1",  # 요소수 주입 Hz
+    "ACC_SNR_AI_1A",  # 요소수 AI Mode
+    "NOX_VALUE",  # 현재 NOx 값 (이전 값)
 ]
 
 
