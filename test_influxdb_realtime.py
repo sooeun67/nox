@@ -127,6 +127,7 @@ def fetch_realtime_data(client: SRS1InfluxDBClient):
     try:
         # NOx 예측에 필요한 컬럼들 (대문자로 InfluxDB에서 조회)
         columns = [
+            "_time_gateway",
             "BFT_EO_FG_T",
             "BR1_EO_FG_T",
             "BR1_EO_O2_A",
@@ -142,6 +143,7 @@ def fetch_realtime_data(client: SRS1InfluxDBClient):
             "ICF_SCS_FG_T_1",
             "ICF_TMS_NOX_A",
             "SDR_HTR_FG_T",
+            "NOX_Value",
         ]
 
         # 현재 시간부터 1시간 전까지 데이터 조회
