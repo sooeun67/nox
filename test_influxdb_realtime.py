@@ -203,6 +203,16 @@ def test_full_pipeline(client: SRS1InfluxDBClient):
         print(f"✅ 전처리 완료: {processed_data.shape}")
         print(f"   생성된 피처 수: {len(feature_cols)}")
 
+        # 전처리 후 컬럼 확인
+        print(f"\n🔍 전처리 후 컬럼 확인:")
+        print(f"   전체 컬럼 수: {len(processed_data.columns)}")
+        print(
+            f"   NOx 관련 컬럼: {[col for col in processed_data.columns if 'nox' in col.lower()]}"
+        )
+        print(
+            f"   시간 관련 컬럼: {[col for col in processed_data.columns if 'time' in col.lower()]}"
+        )
+
         # 3. 모델 예측 실행
         print("\n🤖 모델 예측 실행 중...")
         with open("Model/lgbm_model.pkl", "rb") as f:
@@ -238,6 +248,11 @@ def test_full_pipeline(client: SRS1InfluxDBClient):
             # 4. 결과 데이터프레임 생성
             result_df = processed_data.copy()
             result_df["nox_prediction"] = predictions
+
+            # 인덱스를 컬럼으로 복원 (중요!)
+            if result_df.index.name == "_time_gateway":
+                result_df = result_df.reset_index()
+                print("✅ _time_gateway 인덱스를 컬럼으로 복원")
 
             # 5. 필수 컬럼 확인 및 출력
             print(f"\n📊 최종 결과 데이터:")
