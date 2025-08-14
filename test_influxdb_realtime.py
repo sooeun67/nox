@@ -179,46 +179,124 @@ def test_full_pipeline(client: SRS1InfluxDBClient):
     print("🔄 전체 파이프라인 테스트 시작")
     print("=" * 60)
 
-    # 1. SRS1 데이터 조회
+    # 1. 실시간 데이터 조회
     raw_data = fetch_realtime_data(client)
     if raw_data is None or raw_data.empty:
         print("❌ 데이터 조회 실패")
         return None
 
-    # 2. 전처리 실행
+    print(f"\n📊 원본 데이터 정보:")
+    print(f"   데이터 형태: {raw_data.shape}")
+    print(f"   컬럼 수: {len(raw_data.columns)}")
+    print(
+        f"   시간 범위: {raw_data['_time_gateway'].min()} ~ {raw_data['_time_gateway'].max()}"
+    )
+    print(f"   샘플 컬럼: {list(raw_data.columns[:10])}")
+
+    # 2. 전처리 파이프라인 실행
     print("\n🔄 전처리 파이프라인 실행 중...")
     preprocessor = NOxDataPreprocessor()
-
     try:
         processed_data, feature_cols = preprocessor.preprocess_realtime_data(raw_data)
         print(f"✅ 전처리 완료: {processed_data.shape}")
+        print(f"   생성된 피처 수: {len(feature_cols)}")
 
-        # 3. 모델 예측
+        # 3. 모델 예측 실행
         print("\n🤖 모델 예측 실행 중...")
         with open("Model/lgbm_model.pkl", "rb") as f:
             model = pickle.load(f)
 
-        # 피처 매칭
         model_features = model.feature_names_in_
         available_features = [f for f in model_features if f in feature_cols]
+        missing_features = [f for f in model_features if f not in feature_cols]
 
         print(f"🔍 피처 매칭 결과:")
         print(f"   모델 피처 수: {len(model_features)}")
         print(f"   사용 가능한 피처: {len(available_features)}개")
+        print(f"   누락된 피처: {len(missing_features)}개")
+
+        if missing_features:
+            print(f"   ⚠️ 누락된 피처 (처음 10개): {missing_features[:10]}")
+            if len(missing_features) > 10:
+                print(f"   ... 외 {len(missing_features) - 10}개")
 
         if len(available_features) > 0:
             model_input = processed_data[available_features].fillna(0)
+
+            print(f"\n🚀 예측 실행 중...")
+            print(f"   입력 데이터 형태: {model_input.shape}")
+
             predictions = model.predict(model_input)
 
             print(f"✅ 예측 완료: {len(predictions)}개")
             print(f"   예측값 범위: {predictions.min():.2f} ~ {predictions.max():.2f}")
             print(f"   예측값 평균: {predictions.mean():.2f}")
+            print(f"   예측값 표준편차: {predictions.std():.2f}")
 
-            # 결과 저장
+            # 4. 결과 데이터프레임 생성
             result_df = processed_data.copy()
             result_df["nox_prediction"] = predictions
 
-            print(f"\n📊 최종 결과: {result_df.shape}")
+            # 5. 필수 컬럼 확인 및 출력
+            print(f"\n📊 최종 결과 데이터:")
+            print(f"   데이터 형태: {result_df.shape}")
+            print(f"   컬럼 수: {len(result_df.columns)}")
+
+            # 필수 컬럼 확인
+            required_columns = [
+                "_time_gateway",
+                "nox_value",
+                "nox_prediction",
+                "br1_eo_o2_a",
+                "icf_scs_fg_t_1",
+                "icf_ccs_fg_t_1",
+            ]
+
+            available_required = [
+                col for col in required_columns if col in result_df.columns
+            ]
+            missing_required = [
+                col for col in required_columns if col not in result_df.columns
+            ]
+
+            print(f"\n🔍 필수 컬럼 확인:")
+            print(f"   사용 가능한 컬럼: {available_required}")
+            if missing_required:
+                print(f"   ⚠️ 누락된 컬럼: {missing_required}")
+
+            # 6. 마지막 10개 행 출력
+            if len(available_required) > 0:
+                print(f"\n📋 마지막 10개 행 (필수 컬럼):")
+                print("=" * 80)
+
+                # 마지막 10개 행 선택
+                last_10_rows = result_df[available_required].tail(10)
+
+                # 시간 포맷팅
+                if "_time_gateway" in last_10_rows.columns:
+                    last_10_rows["_time_gateway"] = last_10_rows[
+                        "_time_gateway"
+                    ].dt.strftime("%Y-%m-%d %H:%M:%S")
+
+                # 데이터 출력
+                pd.set_option("display.max_columns", None)
+                pd.set_option("display.width", None)
+                print(last_10_rows.to_string(index=False))
+
+                # 7. 통계 요약
+                print(f"\n📈 예측 결과 통계:")
+                print(f"   예측값 평균: {result_df['nox_prediction'].mean():.2f}")
+                print(f"   예측값 중앙값: {result_df['nox_prediction'].median():.2f}")
+                print(f"   예측값 표준편차: {result_df['nox_prediction'].std():.2f}")
+
+                if "nox_value" in result_df.columns:
+                    print(f"\n🔍 실제값 vs 예측값 비교:")
+                    print(f"   실제값 평균: {result_df['nox_value'].mean():.2f}")
+                    print(f"   예측값 평균: {result_df['nox_prediction'].mean():.2f}")
+                    print(
+                        f"   차이 평균: {abs(result_df['nox_value'] - result_df['nox_prediction']).mean():.2f}"
+                    )
+
             return result_df
         else:
             print("❌ 사용 가능한 피처가 없습니다.")
