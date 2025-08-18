@@ -269,7 +269,7 @@ class NOxDataPreprocessor:
 
         # 결측치가 있는 행 제거
         before_count = len(model_data)
-        model_data = model_data.dropna()
+        model_data = model_data.fillna(0)  # dropna() 대신 fillna(0) 사용
         after_count = len(model_data)
 
         self.logger.info(f"   📊 데이터 정리: {before_count:,} → {after_count:,} 행")

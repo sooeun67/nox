@@ -146,10 +146,10 @@ def fetch_realtime_data(client: SRS1InfluxDBClient):
             "NOX_Value",
         ]
 
-        # 현재 시간부터 10분 전까지 데이터 조회
+        # 현재 시간부터 15분 전까지 데이터 조회
         end_time = pd.Timestamp.now()
         start_time = end_time - pd.Timedelta(hours=1)
-        query_range_seconds = 600  # 10분
+        query_range_seconds = 900  # 15분
 
         print(f"⏰ 조회 기간: {start_time} ~ {end_time}")
 
